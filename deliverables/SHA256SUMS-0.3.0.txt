@@ -1,0 +1,1 @@
+858624a6659d92eb539a716b00aa0eb655c8793973bd5d360eb54cc6bcfa8341  Movelet-0.3.0-public-debug.apk

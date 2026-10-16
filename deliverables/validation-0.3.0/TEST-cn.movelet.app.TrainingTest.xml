@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.movelet.app.TrainingTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-16T00:38:51" hostname="HEHEYEAST" time="0.008">
+  <properties/>
+  <testcase name="completeFinalSetHasNoRestAndStopsTimer" classname="cn.movelet.app.TrainingTest" time="0.003"/>
+  <testcase name="partialSetThenSkipKeepsActualWork" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="boundsAndSubstitutionsResetDoseUnit" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="timerCountsActiveSecondsAndNeverGoesNegative" classname="cn.movelet.app.TrainingTest" time="0.001"/>
+  <testcase name="weekAlternatesStrengthWithRecoveryAndOnlyReviewedDefaults" classname="cn.movelet.app.TrainingTest" time="0.001"/>
+  <testcase name="bilateralDoseIsStoredPerSide" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="skippedOptionalWorkDoesNotInvalidateCompletedRequiredWork" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="progressionRequiresTwoMatchingPainlessFullEffortReports" classname="cn.movelet.app.TrainingTest" time="0.001"/>
+  <testcase name="doingLessThanTargetCannotSuggestProgression" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="catalogHasCompleteUniqueEntries" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="simplifyPreservesCompletedSetsAndOriginalTarget" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="skipIsNeverCompletion" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="endedSessionsAreImmutableToTrainingActions" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="repeatedCompleteDuringRestCannotCreateExtraSet" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="simplifyRemovesOptionalWorkAndKeepsRequiredMinimum" classname="cn.movelet.app.TrainingTest" time="0.0"/>
+  <testcase name="pauseStopsTimeAndCompletion" classname="cn.movelet.app.TrainingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

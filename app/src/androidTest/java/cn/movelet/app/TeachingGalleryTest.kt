@@ -3,7 +3,6 @@ package cn.movelet.app
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,13 +11,23 @@ import org.junit.runner.RunWith
 class TeachingGalleryTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
     @Test fun offlineGalleryCanPageZoomAndReturnWithoutChangingTraining() {
-        assumeTrue(BuildConfig.PERSONAL_MEDIA)
         if (compose.onAllNodesWithText("了解，按身体状态调整").fetchSemanticsNodes().isNotEmpty())
             compose.onNodeWithText("了解，按身体状态调整").performClick()
         compose.onNodeWithText("动作库").performClick()
         compose.onNodeWithText("搜索动作或肌群").performTextInput("死虫")
         compose.onNodeWithText("死虫式").performClick()
         compose.waitUntil(10000) { compose.onAllNodesWithTag("loaded-photo", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("AI 动作示意").assertExists()
+        compose.onNodeWithText("1 / 1").assertExists()
+        compose.onNodeWithText("放大查看").performClick()
+        compose.onNodeWithText("放大 2 倍").performClick()
+        compose.onNodeWithText("还原").assertExists()
+        compose.onNodeWithContentDescription("关闭大图").performClick()
+        if (!BuildConfig.PERSONAL_MEDIA) {
+            compose.onNodeWithText("原图对照").assertDoesNotExist()
+            return
+        }
+        compose.onNodeWithText("原图对照").performClick()
         compose.onNodeWithText("1 / 4").assertExists()
         compose.onNodeWithContentDescription("下一张").performClick()
         compose.waitForIdle()
@@ -31,6 +40,9 @@ class TeachingGalleryTest {
         compose.onNodeWithText("放大 2 倍").assertExists()
         compose.onNodeWithContentDescription("关闭大图").performClick()
         compose.onNodeWithText("3 / 4").assertExists()
+        compose.onNodeWithText("AI 分步示意").performClick()
+        compose.onNodeWithText("1 / 1").assertExists()
+        compose.onNodeWithText("AI 动作示意").assertExists()
         compose.onNodeWithContentDescription("返回").performClick()
         compose.onNodeWithText("搜索动作或肌群").performTextClearance()
         compose.onNodeWithText("搜索动作或肌群").performTextInput("踏步")

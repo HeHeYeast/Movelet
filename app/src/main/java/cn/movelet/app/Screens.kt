@@ -34,7 +34,7 @@ import androidx.core.net.toUri
             (query.isBlank() || "${e.name} ${e.english} ${e.muscles}".contains(query.trim(), ignoreCase = true))
     }
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { TitleBlock("学会动作，再慢慢加量", "动作库", if (BuildConfig.PERSONAL_MEDIA) "24 个动作 · 21 项含离线参考图" else "24 个动作 · 文字与专业来源") }
+        item { TitleBlock("学会动作，再慢慢加量", "动作库", if (BuildConfig.PERSONAL_MEDIA) "24 个动作 · 4 项新示意 · 21 项含图" else "24 个动作 · 4 项含 AI 分步示意") }
         item { OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("搜索动作或肌群") }, leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "清除搜索") } }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(20.dp)) }
         item { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -82,13 +82,13 @@ import androidx.core.net.toUri
                     catch (_: ActivityNotFoundException) { Toast.makeText(context, "未找到可打开资料的浏览器", Toast.LENGTH_LONG).show() }
                 }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, null); Spacer(Modifier.width(8.dp)); Text("打开原始教学资料（联网）") }
             } } }
-            TeachingMedia.photos(e.id).distinctBy { it.sourceUrl }.forEach { photo -> item { SoftCard {
+            TeachingMedia.photos(e.id).distinctBy { it.credit to it.sourceUrl }.forEach { photo -> item { SoftCard {
                 Text(photo.credit, fontWeight = FontWeight.SemiBold)
-                Text("个人离线参考 · 来源核对 ${photo.checkedOn}\n${photo.review}", style = MaterialTheme.typography.bodySmall)
+                Text("${if (photo.isGenerated) "AI 示意 · 动作资料核对" else "个人离线参考 · 来源核对"} ${photo.checkedOn}\n${photo.review}", style = MaterialTheme.typography.bodySmall)
                 TextButton(onClick = {
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, photo.sourceUrl.toUri())) }
                     catch (_: ActivityNotFoundException) { Toast.makeText(context, "未找到可打开资料的浏览器", Toast.LENGTH_LONG).show() }
-                }) { Text("查看图片原始出处（联网）") }
+                }) { Text(if (photo.isGenerated) "查看动作核对依据（联网）" else "查看图片原始出处（联网）") }
             } } }
             item { SectionTitle("也可以了解") }
             Catalog.all.filter { it.id != e.id && it.category == e.category && it.reviewed }.take(2).forEach { alt -> item {
