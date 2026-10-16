@@ -76,7 +76,7 @@ object Catalog {
             "站起呼气，坐下吸气。", "重重跌坐|椅子滑动", "必要时用手辅助；膝痛缩小幅度。", "使用较高座面或手辅助", "徒手深蹲", strength),
         e("split", "扶椅分腿蹲", "Supported split squat", Category.LOWER, "股四头肌、臀肌", 6,
             "扶稳固椅背，一脚前一脚后，双脚左右留出宽度。", "保持身体稳定，两膝弯曲小幅下降。|前脚踩地站起；完成一侧后换腿。",
-            "下降吸气，起身呼气。", "双脚踩成一条线|膝向内倒", "降阶改编条目，尚待逐项复核；膝痛换坐站或跳过。", "椅子坐站", "减少扶持或增加舒适深度", strength, DoseUnit.EACH_SIDE, reviewed = false),
+            "下降吸气，起身呼气。", "双脚踩成一条线|膝向内倒", "降阶改编条目，尚待逐项复核；膝痛换坐站或跳过。", "椅子坐站", "减少扶持或增加舒适深度", Source("NHS My Planned Care · Split squats · p.8", "https://www.myplannedcare.nhs.uk/wp-content/uploads/2024/01/ACLR-Targeted-Support-Offer-Template-v2.pdf#page=8", "仅核对分腿站位与双膝弯曲；扶椅和小幅度为改编，不采用 ACL 康复处方", "2026-10-16"), DoseUnit.EACH_SIDE, reviewed = false),
         e("bridge", "臀桥", "Glute bridge", Category.LOWER, "臀大肌、腘绳肌", 10,
             "仰卧屈膝，脚掌踩地与髋同宽，手臂放身体两侧。", "脚跟稳定踩地，收紧臀部抬起骨盆。|到肩、髋、膝接近一线即停，慢慢放下。",
             "抬起呼气，放下吸气。", "用腰过度顶高|膝向两侧散开", "腰痛则降低高度；不要靠颈部顶地。", "减小抬髋幅度", "顶端停 2–3 秒", back),
@@ -98,13 +98,13 @@ object Catalog {
             "只伸一条腿，脚尖留地；或死虫单脚点地", "保持稳定，停留延长到 3–5 秒", ace("14", "bird-dog"), DoseUnit.EACH_SIDE, level = "进阶"),
         e("march", "原地轻踏步", "Gentle march", Category.CARDIO, "下肢循环活动", 30,
             "站在防滑地面，附近有稳定支撑。", "交替轻抬脚，缓慢落下，不跳跃。|保持能自然说完整句子的速度。",
-            "自然呼吸。", "抬膝过高|落地很重", "不适、头晕或异常气短即停。动作是日常步行的轻量改编。", "坐姿交替抬脚", "稍增加时间，先不提速", Source("NHS · Sitting exercises", sitting.url, "参考 hip marching；站姿为日常动作改编"), DoseUnit.SECONDS, 2),
+            "自然呼吸。", "抬膝过高|落地很重", "不适、头晕或异常气短即停。动作是日常步行的轻量改编。", "坐姿交替抬脚", "稍增加时间，先不提速", Source("NHS · Warm-up · March on the spot", "https://www.nhs.uk/live-well/exercise/how-to-warm-up-before-exercising/", "参考原地踏步；本 App 使用更轻的抬脚幅度，不采用原文时长", "2026-10-16"), DoseUnit.SECONDS, 2),
         e("step_jack", "无跳跃开合步", "Step jack", Category.CARDIO, "全身低冲击活动", 30,
             "双脚站稳，手放身侧。", "右脚侧点地后收回，再换左脚。|手臂仅在肩部舒适范围摆动，可始终低于肩。",
-            "持续自然呼吸。", "脚步过快失去平衡|强行举臂过头", "待逐项专业复核，不加入默认计划；肩不适只动脚。", "原地踏步", "小幅开合跳需另行评估耐受", Source("NHS · Get fit at home", "https://www.myhealthlondon.nhs.uk/be-healthier/move-more/get-fit-at-home/", "低冲击原则参考，非此动作的逐步骤证据"), DoseUnit.SECONDS, reviewed = false),
+            "持续自然呼吸。", "脚步过快失去平衡|强行举臂过头", "待逐项专业复核，不加入默认计划；肩不适只动脚。", "原地踏步", "小幅开合跳需另行评估耐受", Source("NHS · Balance · Sideways walking", "https://www.nhs.uk/live-well/exercise/balance-exercises/", "只参考缓慢侧步；侧点后收回和低位摆臂为本 App 改编，非原文完整动作", "2026-10-16"), DoseUnit.SECONDS, reviewed = false),
         e("burpee", "高台后撤步波比", "Elevated step-back burpee", Category.CARDIO, "全身与核心", 4,
             "面对牢固高台，保证地面防滑；无跳跃、无俯卧撑。", "双手撑台，一脚一脚向后撤到斜板支撑。|一脚一脚收回，起身站稳后再重复。",
-            "持续呼吸，起身呼气。", "双脚跳出|塌腰|起身太快", "待逐项专业复核，不进默认计划；肩腕腰痛、头晕时不做。", "原地踏步", "先提高控制，不急于加入跳跃", Source("ACE · Exercise Library", "https://www.acefitness.org/resources/everyone/exercise-library/", "变体待查证，非已核实的完整教学来源"), level = "进阶", reviewed = false)
+            "持续呼吸，起身呼气。", "双脚跳出|塌腰|起身太快", "待逐项专业复核，不进默认计划；肩腕腰痛、头晕时不做。", "原地踏步", "先提高控制，不急于加入跳跃", Source("ASFA · Elevated Step-Back Burpee", "https://www.americansportandfitness.com/blogs/fitness-blog/what-is-a-burpee", "核对稳定支撑、逐脚后撤与返回站立；未获个体适用性评估", "2026-10-16"), level = "进阶", reviewed = false)
     )
     fun get(id: String) = all.first { it.id == id }
 }

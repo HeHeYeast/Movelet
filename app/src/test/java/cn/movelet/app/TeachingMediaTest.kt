@@ -19,10 +19,11 @@ class TeachingMediaTest {
 
     @Test fun allImagesHaveSourceReviewAndCorrectExerciseMapping() {
         val media = TeachingMedia.catalog
-        assertEquals(40, media.size)
-        assertEquals(40, media.map { it.path }.toSet().size)
-        assertEquals(setOf("dead_bug", "bird_dog", "thread", "prone_w"), media.filter { it.isGenerated }.map { it.exerciseId }.toSet())
-        assertEquals(21, media.map { it.exerciseId }.toSet().size)
+        assertEquals(60, media.size)
+        assertEquals(60, media.map { it.path }.toSet().size)
+        assertEquals(Catalog.all.map { it.id }.toSet(), media.filter { it.isGenerated }.map { it.exerciseId }.toSet())
+        assertEquals(24, media.filter { it.isGenerated }.size)
+        assertEquals(24, media.map { it.exerciseId }.toSet().size)
         media.forEach {
             assertTrue(Catalog.all.any { e -> e.id == it.exerciseId })
             assertTrue(it.path.matches(Regex("(photos|generated)/[a-z0-9_-]+\\.(jpe?g|png)")))
@@ -32,11 +33,13 @@ class TeachingMediaTest {
             if (it.isGenerated) {
                 assertTrue(it.rights.contains("生成"))
                 assertTrue(it.credit.contains("AI"))
-                assertTrue(it.width >= 1900 && it.height >= 800)
+                assertTrue(maxOf(it.width, it.height) >= 1200 && minOf(it.width, it.height) >= 800)
+                assertFalse(it.phaseGuide.isNullOrBlank())
             } else assertTrue(it.rights.contains("未取得"))
             assertTrue(it.review.contains("未获真人"))
         }
-        assertEquals(setOf("easier"), media.filter { it.exerciseId == "march" }.map { it.relation }.toSet())
+        assertEquals(setOf("easier"), media.filter { it.exerciseId == "march" && !it.isGenerated }.map { it.relation }.toSet())
+        assertTrue(media.first { it.exerciseId == "burpee" }.phaseGuide!!.contains("左上"))
         assertTrue(media.first { it.exerciseId == "thread" && !it.isGenerated }.caption.contains("只参考下半图"))
         assertFalse(media.filter { it.exerciseId == "bridge" }.any { it.sourceUrl.contains("acefitness") })
     }
@@ -57,6 +60,6 @@ class TeachingMediaTest {
             }
         }
         assertEquals(if (BuildConfig.PERSONAL_MEDIA) 36 else 0, context.assets.list("photos")?.size ?: 0)
-        assertEquals(4, context.assets.list("generated")?.size ?: 0)
+        assertEquals(24, context.assets.list("generated")?.size ?: 0)
     }
 }

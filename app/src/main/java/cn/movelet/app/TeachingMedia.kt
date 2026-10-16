@@ -40,7 +40,7 @@ data class TeachingPhoto(
     val exerciseId: String, val path: String, val title: String, val caption: String,
     val credit: String, val sourceUrl: String, val url: String, val relation: String,
     val width: Int, val height: Int, val sha256: String, val checkedOn: String,
-    val rights: String, val review: String
+    val rights: String, val review: String, val phaseGuide: String? = null
 ) {
     val isGenerated: Boolean get() = path.startsWith("generated/")
 }
@@ -95,7 +95,7 @@ private object PhotoCache {
     }
     Box(modifier.background(Color.White), contentAlignment = Alignment.Center) {
         bitmap?.let { Image(it.asImageBitmap(), "${photo.title}：${photo.caption}", Modifier.fillMaxSize().testTag("loaded-photo"),
-            contentScale = if (small && photo.isGenerated) ContentScale.Crop else ContentScale.Fit,
+            contentScale = if (small && photo.isGenerated && photo.width > photo.height * 1.7f) ContentScale.Crop else ContentScale.Fit,
             alignment = if (small && photo.isGenerated) Alignment.CenterStart else Alignment.Center) }
             ?: if (ready) Text("图片暂不可用\n请查看文字步骤", color = Color(0xFF41584B))
             else CircularProgressIndicator(Modifier.size(22.dp), color = Color(0xFF276553))
@@ -147,7 +147,7 @@ private object PhotoCache {
             }
             Text(current.title, fontWeight = FontWeight.SemiBold)
             Text(current.caption, style = MaterialTheme.typography.bodyMedium)
-            if (current.isGenerated) Text("左图：起始 · 右图：动作中\n已对照资料核对要点，非真人示范或专业签核。", style = MaterialTheme.typography.labelMedium)
+            if (current.isGenerated) Text("${current.phaseGuide ?: "左图：起始 · 右图：动作中"}\n${if (e.reviewed) "已对照资料核对可见要点" else "候选动作：仅核对图文对应，变体仍待专业复核"}，非真人示范或专业签核。", style = MaterialTheme.typography.labelMedium)
             Text(current.credit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (expanded) PhotoViewer(photos, pager.currentPage, { expanded = false }) { index -> scope.launch { pager.scrollToPage(index) } }
         }
@@ -178,6 +178,7 @@ private object PhotoCache {
                     LocalPhoto(photos[index], Modifier.fillMaxSize().graphicsLayer { scaleX = zoom; scaleY = zoom; translationX = offset.x; translationY = offset.y })
                 }
                 Column(Modifier.heightIn(max = 150.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    photos[index].phaseGuide?.let { Text(it, style = MaterialTheme.typography.labelMedium) }
                     Text(photos[index].caption)
                     Text("${photos[index].credit}\n原图 ${photos[index].width} × ${photos[index].height} · 双指缩放、拖动查看", style = MaterialTheme.typography.bodySmall)
                 }

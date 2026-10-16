@@ -34,7 +34,7 @@ import androidx.core.net.toUri
             (query.isBlank() || "${e.name} ${e.english} ${e.muscles}".contains(query.trim(), ignoreCase = true))
     }
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { TitleBlock("学会动作，再慢慢加量", "动作库", if (BuildConfig.PERSONAL_MEDIA) "24 个动作 · 4 项新示意 · 21 项含图" else "24 个动作 · 4 项含 AI 分步示意") }
+        item { TitleBlock("学会动作，再慢慢加量", "动作库", "24 个动作 · 全部配有 AI 分步示意") }
         item { OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("搜索动作或肌群") }, leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "清除搜索") } }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(20.dp)) }
         item { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -10,6 +10,26 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class TeachingGalleryTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @Test fun everyExerciseLoadsItsOwnOfflineGeneratedImage() {
+        if (compose.onAllNodesWithText("了解，按身体状态调整").fetchSemanticsNodes().isNotEmpty())
+            compose.onNodeWithText("了解，按身体状态调整").performClick()
+        compose.onNodeWithText("动作库").performClick()
+        Catalog.all.forEach { exercise ->
+            compose.onNodeWithText("搜索动作或肌群").performTextClearance()
+            compose.onNodeWithText("搜索动作或肌群").performTextInput(exercise.name)
+            compose.onNode(hasText(exercise.name) and !hasSetTextAction()).performClick()
+            val photo = TeachingMedia.photos(exercise.id).first { it.isGenerated }
+            compose.waitUntil(10000) {
+                compose.onAllNodesWithContentDescription("${photo.title}：${photo.caption}", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithText("AI 动作示意").assertExists()
+            if (exercise.id == "burpee") {
+                compose.onNodeWithTag("teaching-detail").performScrollToNode(hasText(photo.phaseGuide!!, substring = true))
+                compose.onNodeWithText(photo.phaseGuide!!, substring = true).assertExists()
+            }
+            compose.onNodeWithContentDescription("返回").performClick()
+        }
+    }
     @Test fun offlineGalleryCanPageZoomAndReturnWithoutChangingTraining() {
         if (compose.onAllNodesWithText("了解，按身体状态调整").fetchSemanticsNodes().isNotEmpty())
             compose.onNodeWithText("了解，按身体状态调整").performClick()
@@ -47,6 +67,8 @@ class TeachingGalleryTest {
         compose.onNodeWithText("搜索动作或肌群").performTextClearance()
         compose.onNodeWithText("搜索动作或肌群").performTextInput("踏步")
         compose.onNodeWithText("原地轻踏步").performClick()
+        compose.onNodeWithText("AI 动作示意").assertExists()
+        compose.onNodeWithText("原图对照").performClick()
         compose.onNodeWithText("降阶参考：坐姿抬脚").assertExists()
     }
 }
