@@ -7,3 +7,5 @@ local.properties
 .kotlin/
 *.keystore
 *.jks
+personal-media/
+deliverables/personal/

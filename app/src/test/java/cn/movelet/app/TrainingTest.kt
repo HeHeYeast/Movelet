@@ -15,8 +15,6 @@ class TrainingTest {
             assertTrue(it.name.isNotBlank() && it.english.isNotBlank() && it.setup.isNotBlank() && it.breathing.isNotBlank())
             assertTrue(it.safety.isNotBlank() && it.mistakes.isNotEmpty() && it.easier.isNotBlank() && it.harder.isNotBlank())
             assertTrue(it.sources.isNotEmpty() && it.sources.all { s -> s.url.startsWith("https://") })
-            assertNull(it.media.localPath)
-            assertTrue(it.media.license.contains("未取得"))
         }
     }
     @Test fun weekAlternatesStrengthWithRecoveryAndOnlyReviewedDefaults() {

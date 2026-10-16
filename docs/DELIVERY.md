@@ -1,4 +1,6 @@
-# 第一轮交付与验证报告
+# 第一轮交付与验证报告（0.1.0 历史记录）
+
+0.2.0 图解版说明见 [IMAGES.md](IMAGES.md)，新版验证见 [IMAGE-VALIDATION.md](IMAGE-VALIDATION.md)。
 
 交付日期：2026-10-15（Asia/Shanghai）。版本：0.1.0 / versionCode 1。定位：**可安装的原生核心功能验证版**。整个产品尚未全部完成，尤其是授权高清教学素材与完整真机训练验证。
 

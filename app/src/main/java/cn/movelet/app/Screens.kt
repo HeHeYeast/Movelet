@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +34,7 @@ import androidx.core.net.toUri
             (query.isBlank() || "${e.name} ${e.english} ${e.muscles}".contains(query.trim(), ignoreCase = true))
     }
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { TitleBlock("学会动作，再慢慢加量", "动作库", "24 个动作 · 离线文字教学") }
+        item { TitleBlock("学会动作，再慢慢加量", "动作库", if (BuildConfig.PERSONAL_MEDIA) "24 个动作 · 21 项含离线参考图" else "24 个动作 · 文字与专业来源") }
         item { OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("搜索动作或肌群") }, leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "清除搜索") } }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(20.dp)) }
         item { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -44,7 +45,7 @@ import androidx.core.net.toUri
             Spacer(Modifier.weight(1f)); Text("${results.size} 个结果", style = MaterialTheme.typography.labelMedium)
         } }
         if (results.isEmpty()) item { SoftCard { Text("没有找到动作"); Text("试试“肩”“核心”或英文名称，或清除筛选。") } }
-        results.forEach { e -> item(key = e.id) { ExerciseRow(e, "${e.category.label} · ${e.difficulty}", if (!e.reviewed) "待复核 · 不进入默认计划" else "文字教学 · 图片待授权", { detail(e.id) }) } }
+        results.forEach { e -> item(key = e.id) { ExerciseRow(e, "${e.category.label} · ${e.difficulty}", TeachingMedia.summary(e.id) + if (!e.reviewed) " · 候选动作" else "", { detail(e.id) }) } }
     }
 }
 
@@ -54,18 +55,10 @@ import androidx.core.net.toUri
     Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
         TopAppBar(title = { Text("动作教学") }, navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") } }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background))
     }) { padding ->
-        LazyColumn(Modifier.padding(padding), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyColumn(Modifier.padding(padding).testTag("teaching-detail"), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item { TitleBlock(e.english, e.name, "${e.category.label} · ${e.difficulty}") }
-            item { SoftCard {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    CategoryTile(e.category, true)
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("教学图片待授权", fontWeight = FontWeight.SemiBold)
-                        Text("当前提供文字步骤与专业原始资料。此图标仅标识分类。", style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-                if (!e.reviewed) Text("此条目尚待逐项复核，不加入默认计划。", color = MaterialTheme.colorScheme.error)
-            } }
+            item { TeachingGallery(e) }
+            if (!e.reviewed) item { Text("候选动作：尚待逐项专业复核，不加入默认计划。", color = MaterialTheme.colorScheme.error) }
             item { SoftCard { Text("主要肌群", style = MaterialTheme.typography.labelLarge); Text(e.muscles); Text("初始参考：${e.sets} 组 × ${e.dose} ${e.unit.label}", color = MaterialTheme.colorScheme.primary) } }
             item { SectionTitle("01  准备姿势"); Spacer(Modifier.height(8.dp)); Text(e.setup, style = MaterialTheme.typography.bodyLarge, lineHeight = 26.sp) }
             item { SectionTitle("02  一步一步来") }
@@ -88,7 +81,14 @@ import androidx.core.net.toUri
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, source.url.toUri())) }
                     catch (_: ActivityNotFoundException) { Toast.makeText(context, "未找到可打开资料的浏览器", Toast.LENGTH_LONG).show() }
                 }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, null); Spacer(Modifier.width(8.dp)); Text("打开原始教学资料（联网）") }
-                Text("素材：${e.media.license}\n本地路径：${e.media.localPath ?: "暂无"}", style = MaterialTheme.typography.bodySmall)
+            } } }
+            TeachingMedia.photos(e.id).distinctBy { it.sourceUrl }.forEach { photo -> item { SoftCard {
+                Text(photo.credit, fontWeight = FontWeight.SemiBold)
+                Text("个人离线参考 · 来源核对 ${photo.checkedOn}\n${photo.review}", style = MaterialTheme.typography.bodySmall)
+                TextButton(onClick = {
+                    try { context.startActivity(Intent(Intent.ACTION_VIEW, photo.sourceUrl.toUri())) }
+                    catch (_: ActivityNotFoundException) { Toast.makeText(context, "未找到可打开资料的浏览器", Toast.LENGTH_LONG).show() }
+                }) { Text("查看图片原始出处（联网）") }
             } } }
             item { SectionTitle("也可以了解") }
             Catalog.all.filter { it.id != e.id && it.category == e.category && it.reviewed }.take(2).forEach { alt -> item {
@@ -115,7 +115,7 @@ import androidx.core.net.toUri
             actions = { TextButton(onClick = { vm.pause(); finishDialog = true }) { Text("结束") } }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background))
     }) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
-            LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            LazyColumn(Modifier.weight(1f).testTag("focus-list"), contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("${session.doneSets} / ${session.targetSets} 组", style = MaterialTheme.typography.labelLarge)
                     Text("已练 ${clockText(session.seconds)}", style = MaterialTheme.typography.labelLarge)
@@ -124,7 +124,7 @@ import androidx.core.net.toUri
                     item { CategoryTile(Category.MOBILITY, true); Spacer(Modifier.height(20.dp)); Text("今天的努力，记下来", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
                     item { Text("实际完成 ${session.doneSets} 组。跳过的内容不会算作完成。") }
                 } else {
-                    item { Text(work.plan.section + if (session.simplified) " · 已简化" else "", color = MaterialTheme.colorScheme.primary); Spacer(Modifier.height(14.dp)); CategoryTile(e.category, true) }
+                    item { Text(work.plan.section + if (session.simplified) " · 已简化" else "", color = MaterialTheme.colorScheme.primary) }
                     item { Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(e.name, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
                         Text("第 ${work.completed.size + 1} / ${work.plan.sets} 组", style = MaterialTheme.typography.titleMedium)
@@ -139,6 +139,7 @@ import androidx.core.net.toUri
                         } else Text(e.steps.first(), lineHeight = 25.sp)
                         OutlinedButton(onClick = { vm.pause(); teach(e.id) }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.AutoMirrored.Filled.MenuBook, null); Spacer(Modifier.width(8.dp)); Text("查看完整教学（暂停）") }
                     } }
+                    item { TeachingGallery(e, compact = true) }
                     if (session.rest == 0) item { SoftCard { Counter("实际${e.unit.label}", actual, 1, if (e.unit == DoseUnit.SECONDS) 120 else 30) { actual = it }; Text("少做了也如实记录，不必凑数。", style = MaterialTheme.typography.bodySmall) } }
                 }
                 if (session.paused && work != null) item { Text("已暂停 · 返回教学或切到后台会暂停计时", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium) }

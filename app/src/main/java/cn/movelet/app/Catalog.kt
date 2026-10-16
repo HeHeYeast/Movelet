@@ -5,20 +5,19 @@ enum class Category(val label: String) {
 }
 enum class DoseUnit(val label: String) { REPS("次"), EACH_SIDE("次 / 侧"), SECONDS("秒") }
 data class Source(val title: String, val url: String, val scope: String = "动作要点参考", val checkedOn: String = "2026-10-15")
-data class Media(val localPath: String? = null, val license: String = "未取得图片/视频再分发授权；未收录", val status: String = "待授权与专业复核")
 data class Exercise(
     val id: String, val name: String, val english: String, val category: Category,
     val muscles: String, val difficulty: String, val sets: Int, val dose: Int, val unit: DoseUnit,
     val setup: String, val steps: List<String>, val breathing: String, val mistakes: List<String>,
     val safety: String, val easier: String, val harder: String, val sources: List<Source>,
-    val reviewed: Boolean = true, val media: Media = Media()
+    val reviewed: Boolean = true
 )
 
 object Catalog {
     private val sitting = Source("NHS · Sitting exercises", "https://www.nhs.uk/live-well/exercise/sitting-exercises/")
     private val strength = Source("NHS · Strength exercises", "https://www.nhs.uk/live-well/exercise/strength-exercises/")
     private val back = Source("Whittington Health · Back and Neck Pain", "https://www.whittington.nhs.uk/?c=47047", "仅参考动作机制；原页面向儿童，未采用其处方剂量")
-    private val w = Source("Summit Orthopedics · Therapeutic Exercise · p.9", "https://www.summitortho.com/wp-content/uploads/2022/02/6558_Therapeutic-Exercise-Handout_9.22_MB.pdf", "Prone W 姿势要点；全文 PDF 需进一步人工复核")
+    private val w = Source("Summit Orthopedics · Therapeutic Exercise · p.9", "https://www.summitortho.com/wp-content/uploads/2022/02/6558_Therapeutic-Exercise-Handout_9.22_MB.pdf", "已核对第 9 页 Prone W 文字与原图；不采用其康复处方", "2026-10-16")
     private val shoulder = Source("AAOS · Shoulder Conditioning", "https://orthoinfo.aaos.org/en/recovery/rotator-cuff-and-shoulder-conditioning-program/", "肩胛控制的一般原则，非个体康复处方")
     private fun ace(id: String, slug: String) = Source("ACE · Exercise Library", "https://www.acefitness.org/resources/everyone/exercise-library/$id/$slug/")
     private fun e(id: String, name: String, en: String, cat: Category, muscle: String, dose: Int, setup: String,
@@ -80,7 +79,7 @@ object Catalog {
             "下降吸气，起身呼气。", "双脚踩成一条线|膝向内倒", "降阶改编条目，尚待逐项复核；膝痛换坐站或跳过。", "椅子坐站", "减少扶持或增加舒适深度", strength, DoseUnit.EACH_SIDE, reviewed = false),
         e("bridge", "臀桥", "Glute bridge", Category.LOWER, "臀大肌、腘绳肌", 10,
             "仰卧屈膝，脚掌踩地与髋同宽，手臂放身体两侧。", "脚跟稳定踩地，收紧臀部抬起骨盆。|到肩、髋、膝接近一线即停，慢慢放下。",
-            "抬起呼气，放下吸气。", "用腰过度顶高|膝向两侧散开", "腰痛则降低高度；不要靠颈部顶地。", "减小抬髋幅度", "顶端停 2–3 秒", ace("66", "glute-bridge")),
+            "抬起呼气，放下吸气。", "用腰过度顶高|膝向两侧散开", "腰痛则降低高度；不要靠颈部顶地。", "减小抬髋幅度", "顶端停 2–3 秒", back),
         e("calf", "扶椅提踵", "Supported calf raise", Category.LOWER, "小腿腓肠肌、比目鱼肌", 10,
             "双脚与髋同宽，轻扶稳固椅背。", "双脚跟缓慢抬起，重心均匀分布。|停一下，再缓慢落地。",
             "抬起呼气，落下吸气。", "踝关节向外翻|弹跳借力", "踝或足痛即停，始终轻扶防跌倒。", "减小高度", "延长缓慢下落时间", strength),

@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
+val personalMedia = providers.gradleProperty("personalMedia").orNull == "true"
 android {
     namespace = "cn.movelet.app"
     compileSdk = 35
@@ -11,8 +12,9 @@ android {
         applicationId = "cn.movelet.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = if (personalMedia) "0.2.0-personal" else "0.2.0"
+        buildConfigField("boolean", "PERSONAL_MEDIA", personalMedia.toString())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
@@ -20,7 +22,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
+    if (personalMedia) sourceSets.getByName("main").assets.srcDir(rootProject.file("personal-media"))
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {

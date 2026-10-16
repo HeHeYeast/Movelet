@@ -1,0 +1,7 @@
+
+cn.movelet.app.AppFlowTest:.
+cn.movelet.app.TeachingGalleryTest:.
+
+Time: 10.123
+
+OK (2 tests)

@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TeachingMedia.initialize(this)
         enableEdgeToEdge()
         setContent { MoveletTheme { MoveletApp() } }
     }
@@ -109,7 +110,7 @@ private val Pine = Color(0xFF276553)
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("每组留 2–4 次余力，恢复日可以短一点。你的肩背疼痛尚未评估，本计划不用于诊断或治疗。")
             Text("关节痛、刺痛或症状加重：停止该动作，选择无痛替代，必要时结束训练。持续疼痛、明显无力麻木或活动受限，应寻求专业评估；突发剧痛或外伤后无法活动时及时就医。")
-            Text("第一轮提供离线文字教学。高清图片/视频尚待授权和专业复核，分类图标不是动作示范。原始教学资料需联网打开。")
+            Text(if (BuildConfig.PERSONAL_MEDIA) "已收录离线动作图解，点击可放大。请先看图片旁的版本说明，按本 App 的保守幅度练习。素材仅供个人学习，未获真人专业签核。" else "此版本提供文字步骤和专业来源链接。个人图片包单独保存在本机，不随公开版本分发。分类图标不是动作示范。")
         }
     }, confirmButton = { TextButton(onClick = { prefs.edit { putBoolean("safety_seen", true) }; safety = false }) { Text("了解，按身体状态调整") } })
     if (error != null) AlertDialog(onDismissRequest = { vm.error.value = null }, title = { Text("本地保存提示") }, text = { Text(error!!) }, confirmButton = { TextButton(onClick = { vm.error.value = null }) { Text("知道了") } })
@@ -230,7 +231,7 @@ private val Pine = Color(0xFF276553)
     Card(onClick = click, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CategoryTile(e.category)
+                ExerciseThumbnail(e)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(e.name, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                     Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)

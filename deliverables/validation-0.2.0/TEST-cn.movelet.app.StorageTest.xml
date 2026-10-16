@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.movelet.app.StorageTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-16T00:21:17" hostname="HEHEYEAST" time="2.889">
+  <properties/>
+  <testcase name="startCannotOverwriteActiveSessionOrHistorySnapshot" classname="cn.movelet.app.StorageTest" time="2.657"/>
+  <testcase name="roomPersistsPlanSessionAndFeedbackAcrossReopen" classname="cn.movelet.app.StorageTest" time="0.232"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
