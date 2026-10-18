@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,8 +57,10 @@ private val Pine = Color(0xFF276553)
 }
 
 @Composable fun MoveletApp(vm: MainViewModel = viewModel()) {
-    val sessions by vm.sessions.collectAsStateWithLifecycle()
-    val plans by vm.plans.collectAsStateWithLifecycle()
+    val home by vm.home.collectAsStateWithLifecycle()
+    val sessions = home.sessions
+    val plans = home.plans
+    val templates = home.templates
     val error by vm.error.collectAsStateWithLifecycle()
     val active = sessions.firstOrNull { it.endedAt == null }
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -65,6 +68,9 @@ private val Pine = Color(0xFF276553)
     var detail by rememberSaveable { mutableStateOf<String?>(null) }
     var today by remember { mutableStateOf(LocalDate.now()) }
     var selected by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
+    var weekly by rememberSaveable { mutableStateOf(false) }
+    var editingDate by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingWeekday by rememberSaveable { mutableStateOf<Int?>(null) }
     val prefs = LocalContext.current.getSharedPreferences("local_preferences", 0)
     var safety by rememberSaveable { mutableStateOf(!prefs.getBoolean("safety_seen", false)) }
     val owner = LocalLifecycleOwner.current
@@ -80,11 +86,24 @@ private val Pine = Color(0xFF276553)
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
     LaunchedEffect(Unit) { while (true) { delay(60_000); val now = LocalDate.now(); if (now != today) { today = now; selected = now.toString() } } }
-    BackHandler(detail != null || focus || tab != 0) {
-        when { detail != null -> detail = null; focus -> { vm.pause(); focus = false }; else -> tab = 0 }
+    BackHandler(detail != null || focus || weekly || tab != 0) {
+        when { detail != null -> detail = null; focus -> { vm.pause(); focus = false }; weekly -> weekly = false; else -> tab = 0 }
     }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when {
+            !home.ready -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            editingDate != null || editingWeekday != null -> {
+                val weekday = editingWeekday
+                val date = editingDate?.let(LocalDate::parse) ?: today.with(java.time.DayOfWeek.of(weekday!!))
+                val base = Plans.forDate(date)
+                val initial = if (weekday != null) templates[weekday]?.plan?.copy(date = date.toString()) ?: base
+                    else Plans.resolve(date, plans, templates)
+                val restore = if (weekday != null) base else Plans.resolve(date, emptyMap(), templates)
+                PlanEditorScreen(initial, restore, weekday, { editingDate = null; editingWeekday = null }) { plan, useWeekly, done ->
+                    vm.saveEdited(plan, weekday, useWeekly, done)
+                }
+            }
+            weekly -> WeeklyPlanScreen(templates, { weekly = false }, { editingWeekday = it })
             detail != null -> ExerciseDetail(Catalog.get(detail!!), { detail = null }, { detail = it })
             focus && active != null -> FocusScreen(active, vm, { vm.pause(); focus = false }, { detail = it }, { focus = false; tab = 2 })
             else -> Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
@@ -95,11 +114,12 @@ private val Pine = Color(0xFF276553)
                 }
             }) { padding ->
                 val date = LocalDate.parse(selected)
-                val plan = plans[selected] ?: Plans.forDate(date)
+                val plan = Plans.resolve(date, plans, templates)
                 when(tab) {
                     0 -> TodayScreen(Modifier.padding(padding), today, date, plan, sessions, active,
                         { selected = it.toString() }, { detail = it }, vm::edit,
-                        { if (active == null) vm.start(plan); focus = true }, { safety = true })
+                        { if (active == null) vm.start(plan); focus = true }, { safety = true },
+                        { editingDate = selected }, { weekly = true }, plans.containsKey(selected))
                     1 -> LibraryScreen(Modifier.padding(padding)) { detail = it }
                     2 -> HistoryScreen(Modifier.padding(padding), today, sessions)
                 }
@@ -169,11 +189,12 @@ private val Pine = Color(0xFF276553)
 
 @Composable fun TodayScreen(modifier: Modifier, today: LocalDate, date: LocalDate, plan: DayPlan,
     sessions: List<Session>, active: Session?, select: (LocalDate) -> Unit, detail: (String) -> Unit,
-    edit: (DayPlan) -> Unit, start: () -> Unit, safety: () -> Unit) {
+    edit: (DayPlan) -> Unit, start: () -> Unit, safety: () -> Unit,
+    editDay: () -> Unit, editWeek: () -> Unit, customDate: Boolean) {
     var editing by remember { mutableStateOf<Int?>(null) }
     val latest = sessions.firstOrNull { it.date == date.toString() }
     Column(modifier.fillMaxSize()) {
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        LazyColumn(Modifier.weight(1f).testTag("today-list"), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             item { TitleBlock("MOVELET  /  轻练", if (date == today) "今天，动一会儿" else "为这一天留点时间", date.format(DateTimeFormatter.ofPattern("M 月 d 日 · yyyy"))) {
                 IconButton(onClick = safety) { Icon(Icons.Default.Info, "训练与素材说明") }
             } }
@@ -184,16 +205,24 @@ private val Pine = Color(0xFF276553)
                         Text(if (plan.strength) "循序渐进 · 第一阶段" else "恢复，也是训练的一部分", style = MaterialTheme.typography.labelLarge)
                         Text(plan.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                            Text(if (plan.strength) "约 20–25 分钟" else "约 6–15 分钟", fontWeight = FontWeight.SemiBold)
+                            Text(if (plan.items.none { it.enabled }) "休息日" else "按今天的安排练习", fontWeight = FontWeight.SemiBold)
                             Text("${plan.items.filter { it.enabled }.sumOf { it.sets }} 组 · 可调整")
                         }
-                        Text("肩背轻活动 5–7 分钟 · 每组保留余力", style = MaterialTheme.typography.bodyMedium)
+                        Text("${if (customDate) "当天自定义" else "按每周安排"} · 每组保留余力", style = MaterialTheme.typography.bodyMedium)
                         if (latest != null) {
                             LinearProgressIndicator(progress = { (latest.doneSets.toFloat() / latest.targetSets.coerceAtLeast(1)).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
                             Text("最近一场：${latest.status} · ${latest.doneSets}/${latest.targetSets} 组", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(enabled = active == null && !date.isBefore(today), onClick = editDay, modifier = Modifier.weight(1f)) { Text(if (date == today) "编辑今日动作" else "编辑当天动作") }
+                    OutlinedButton(onClick = editWeek, modifier = Modifier.weight(1f)) { Text("编辑每周安排") }
+                }
+                if (active != null) Text("请先结束当前训练，再调整当天动作。每周模板仍可编辑。", style = MaterialTheme.typography.bodySmall)
+                else if (date.isBefore(today)) Text("过去日期仅供查看，训练记录不会随计划修改。", style = MaterialTheme.typography.bodySmall)
             }
             if (active != null && active.date != date.toString()) item { Text("有一场 ${active.date} 的训练待继续或结束。", color = MaterialTheme.colorScheme.primary) }
             plan.items.map { it.section }.distinct().forEach { section ->
@@ -206,8 +235,8 @@ private val Pine = Color(0xFF276553)
                         ExerciseRow(e, "${item.sets} 组 × ${item.dose} ${e.unit.label}",
                             if (!item.enabled) "未加入" else if (work != null) "${work.completed.size}/${work.plan.sets} 组${if (work.skipped) " · 已跳过" else ""}" else "待开始",
                             { detail(e.id) }) {
-                            if (item.optional) Switch(checked = item.enabled, onCheckedChange = if (active == null) { enabled -> edit(plan.copy(items = plan.items.mapIndexed { i, p -> if (i == index) p.copy(enabled = enabled) else p })) } else null)
-                            IconButton(enabled = active == null, onClick = { editing = index }) { Icon(Icons.Default.Tune, "调整${e.name}") }
+                            if (item.optional) Switch(checked = item.enabled, onCheckedChange = if (active == null && !date.isBefore(today)) { enabled -> edit(plan.copy(items = plan.items.mapIndexed { i, p -> if (i == index) p.copy(enabled = enabled) else p })) } else null)
+                            IconButton(enabled = active == null && !date.isBefore(today), onClick = { editing = index }) { Icon(Icons.Default.Tune, "调整${e.name}") }
                         }
                     }
                 }
@@ -215,14 +244,14 @@ private val Pine = Color(0xFF276553)
             item { Text("痛感不是训练目标。关节痛或症状加重时停止该动作。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
         Surface(shadowElevation = 4.dp) {
-            Button(onClick = start, enabled = active != null || date == today,
+            Button(onClick = start, enabled = active != null || (date == today && plan.items.any { it.enabled }),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp).heightIn(min = 56.dp), shape = RoundedCornerShape(18.dp)) {
                 Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(8.dp))
-                Text(if (active != null) "继续训练" else if (date != today) "仅可在当天开始训练" else if (latest != null) "再练一场（新增记录）" else "开始今天的训练", fontSize = 17.sp)
+                Text(if (active != null) "继续训练" else if (date != today) "仅可在当天开始训练" else if (plan.items.none { it.enabled }) "今天休息 · 可添加动作" else if (latest != null) "再练一场（新增记录）" else "开始今天的训练", fontSize = 17.sp)
             }
         }
     }
-    editing?.let { index -> EditPlanDialog(plan.items[index], { editing = null }) { changed ->
+    editing?.let { index -> EditPlanDialog(plan.items[index], { editing = null }, used = plan.items.filterIndexed { i, _ -> i != index }.map { it.exerciseId }.toSet()) { changed ->
         edit(plan.copy(items = plan.items.mapIndexed { i, p -> if (i == index) changed else p })); editing = null
     } }
 }
@@ -254,7 +283,9 @@ private val Pine = Color(0xFF276553)
         IconButton(enabled = value < max, onClick = { change(value + 1) }) { Icon(Icons.Default.Add, "增加$label") }
     }
 }
-@Composable fun EditPlanDialog(original: PlanItem, dismiss: () -> Unit, save: (PlanItem) -> Unit) {
+@Composable fun EditPlanDialog(original: PlanItem, dismiss: () -> Unit,
+    explanation: String = "替换后会重设建议次数。只影响这一天；训练开始后保存为独立快照。",
+    used: Set<String> = emptySet(), save: (PlanItem) -> Unit) {
     var item by remember { mutableStateOf(original) }
     val e = Catalog.get(item.exerciseId)
     AlertDialog(onDismissRequest = dismiss, title = { Text("调整训练") }, text = {
@@ -263,12 +294,12 @@ private val Pine = Color(0xFF276553)
             Counter("组数", item.sets, 1, 5) { item = item.copy(sets = it) }
             Counter("每组${e.unit.label}", item.dose, 1, if (e.unit == DoseUnit.SECONDS) 120 else 30) { item = item.copy(dose = it) }
             Text("替换为同类动作", style = MaterialTheme.typography.labelLarge)
-            Catalog.all.filter { it.category == e.category && it.reviewed }.forEach { alt ->
+            Catalog.all.filter { it.category == e.category && it.reviewed && it.id !in used }.forEach { alt ->
                 TextButton(onClick = { item = Plans.substitute(item, alt.id) }, modifier = Modifier.fillMaxWidth()) {
                     Text((if (alt.id == item.exerciseId) "✓ " else "") + alt.name)
                 }
             }
-            Text("替换后会重设建议次数。只影响这一天；训练开始后保存为独立快照。", style = MaterialTheme.typography.bodySmall)
+            Text(explanation, style = MaterialTheme.typography.bodySmall)
         }
     }, confirmButton = { TextButton(onClick = { save(Plans.safe(item)) }) { Text("保存") } }, dismissButton = { TextButton(onClick = dismiss) { Text("取消") } })
 }

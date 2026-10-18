@@ -7,6 +7,7 @@ import kotlin.math.max
 data class PlanItem(val exerciseId: String, val sets: Int, val dose: Int, val section: String,
     val optional: Boolean = false, val enabled: Boolean = true)
 data class DayPlan(val date: String, val title: String, val strength: Boolean, val items: List<PlanItem>)
+data class WeekTemplate(val weekday: Int, val effectiveFrom: String, val plan: DayPlan)
 data class SetResult(val dose: Int, val unit: DoseUnit)
 data class WorkItem(val plan: PlanItem, val completed: List<SetResult> = emptyList(), val skipped: Boolean = false)
 data class Session(
@@ -30,6 +31,10 @@ data class Session(
 }
 
 object Plans {
+    fun resolve(date: LocalDate, overrides: Map<String, DayPlan>, templates: Map<Int, WeekTemplate>): DayPlan =
+        overrides[date.toString()] ?: templates[date.dayOfWeek.value]
+            ?.takeIf { date.toString() >= it.effectiveFrom }?.plan?.copy(date = date.toString()) ?: forDate(date)
+
     fun forDate(date: LocalDate): DayPlan {
         val day = date.dayOfWeek.value
         val strength = day in listOf(1, 3, 5)

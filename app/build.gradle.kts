@@ -12,8 +12,8 @@ android {
         applicationId = "cn.movelet.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = if (personalMedia) "0.4.0-personal" else "0.4.0"
+        versionCode = 5
+        versionName = if (personalMedia) "0.5.0-personal" else "0.5.0"
         buildConfigField("boolean", "PERSONAL_MEDIA", personalMedia.toString())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
