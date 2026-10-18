@@ -21,7 +21,8 @@ class TeachingMediaTest {
         val media = TeachingMedia.catalog
         assertEquals(60, media.size)
         assertEquals(60, media.map { it.path }.toSet().size)
-        assertEquals(Catalog.all.map { it.id }.toSet(), media.filter { it.isGenerated }.map { it.exerciseId }.toSet())
+        assertEquals(Catalog.all.map { it.id }.toSet() - PosterExercises.all.map { it.id }.toSet(), media.filter { it.isGenerated }.map { it.exerciseId }.toSet())
+        PosterExercises.all.forEach { assertTrue(TeachingMedia.photos(it.id).isEmpty()) }
         assertEquals(24, media.filter { it.isGenerated }.size)
         assertEquals(24, media.map { it.exerciseId }.toSet().size)
         media.forEach {

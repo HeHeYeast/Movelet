@@ -35,6 +35,6 @@ class AppFlowTest {
         compose.waitUntil(10000) { compose.onAllNodesWithText("部分完成").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("部分完成").assertExists()
         compose.onNodeWithText("查看各组实际次数").performScrollTo().performClick()
-        compose.onNodeWithText("第 1 组：3 次 / 侧").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("第 1 组：8 次").performScrollTo().assertIsDisplayed()
     }
 }

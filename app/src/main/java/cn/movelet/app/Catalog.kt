@@ -3,7 +3,10 @@ package cn.movelet.app
 enum class Category(val label: String) {
     MOBILITY("肩背活动"), UPPER("胸肩上背"), LOWER("腿臀力量"), CORE("核心稳定"), CARDIO("轻量有氧")
 }
-enum class DoseUnit(val label: String) { REPS("次"), EACH_SIDE("次 / 侧"), SECONDS("秒") }
+enum class DoseUnit(val label: String) {
+    REPS("次"), EACH_SIDE("次 / 侧"), SECONDS("秒"), SECONDS_EACH_SIDE("秒 / 侧");
+    val isTimed: Boolean get() = this == SECONDS || this == SECONDS_EACH_SIDE
+}
 data class Source(val title: String, val url: String, val scope: String = "动作要点参考", val checkedOn: String = "2026-10-15")
 data class Exercise(
     val id: String, val name: String, val english: String, val category: Category,
@@ -88,7 +91,7 @@ object Catalog {
             "抬起呼气。", "身体侧倒|脚尖外转代偿", "髋部痛即停，不追求高度。", "更小幅度", "顶端短暂停留", strength, DoseUnit.EACH_SIDE),
         e("dead_bug", "死虫式", "Dead bug", Category.CORE, "腹部深层稳定肌群", 5,
             "仰卧，双臂朝上；髋膝约 90°，膝在髋上方。腹部轻收，腰背保持稳定。",
-            "先只练右脚跟缓慢向地面下降，熟悉腰部不拱起的范围。|稳定后，右腿向前下方伸，同时左臂向头顶方向伸；它们是对侧，不是同侧。|不用触地，也不必伸直腿。腰部将要拱起前停止，回到起始位。|换左腿与右臂。左右各 5 次表示一组总共 10 次，慢慢做。",
+            "先只练右脚跟缓慢向地面下降，熟悉腰部不拱起的范围。|稳定后，右腿向前下方伸，同时左臂向头顶方向伸；它们是对侧，不是同侧。|不用触地，也不必伸直腿。腰部将要拱起前停止，回到起始位。|换左腿与右臂。每侧各完成计划次数；例如每侧 8 次，一组共 16 次，慢慢做。",
             "伸出时缓慢呼气，返回时吸气；能持续呼吸比固定节奏更重要。", "同手同脚移动|腰明显拱起|憋气或甩腿", "腰痛时缩小幅度或单脚跟点地；肩过头不适时双臂留在身体旁。",
             "双手放身侧，仅交替一脚跟点地", "腰稳定后逐渐伸直对侧腿，不同时增加次数", ace("147", "supine-dead-bug"), DoseUnit.EACH_SIDE),
         e("bird_dog", "鸟狗式", "Bird dog", Category.CORE, "核心稳定肌、臀肌、背部", 5,
@@ -105,6 +108,6 @@ object Catalog {
         e("burpee", "高台后撤步波比", "Elevated step-back burpee", Category.CARDIO, "全身与核心", 4,
             "面对牢固高台，保证地面防滑；无跳跃、无俯卧撑。", "双手撑台，一脚一脚向后撤到斜板支撑。|一脚一脚收回，起身站稳后再重复。",
             "持续呼吸，起身呼气。", "双脚跳出|塌腰|起身太快", "待逐项专业复核，不进默认计划；肩腕腰痛、头晕时不做。", "原地踏步", "先提高控制，不急于加入跳跃", Source("ASFA · Elevated Step-Back Burpee", "https://www.americansportandfitness.com/blogs/fitness-blog/what-is-a-burpee", "核对稳定支撑、逐脚后撤与返回站立；未获个体适用性评估", "2026-10-16"), level = "进阶", reviewed = false)
-    )
+    ) + PosterExercises.all
     fun get(id: String) = all.first { it.id == id }
 }

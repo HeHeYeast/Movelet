@@ -10,7 +10,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class TeachingGalleryTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
-    @Test fun everyExerciseLoadsItsOwnOfflineGeneratedImage() {
+    @Test fun everyExerciseLoadsItsOwnImageOrExplicitTextTeaching() {
         if (compose.onAllNodesWithText("了解，按身体状态调整").fetchSemanticsNodes().isNotEmpty())
             compose.onNodeWithText("了解，按身体状态调整").performClick()
         compose.onNodeWithText("动作库").performClick()
@@ -18,7 +18,14 @@ class TeachingGalleryTest {
             compose.onNodeWithText("搜索动作或肌群").performTextClearance()
             compose.onNodeWithText("搜索动作或肌群").performTextInput(exercise.name)
             compose.onNode(hasText(exercise.name) and !hasSetTextAction()).performClick()
-            val photo = TeachingMedia.photos(exercise.id).first { it.isGenerated }
+            val photo = TeachingMedia.photos(exercise.id).firstOrNull { it.isGenerated }
+            if (photo == null) {
+                compose.onNodeWithText("先读步骤，再看原始资料").assertExists()
+                compose.onNodeWithTag("teaching-detail").performScrollToNode(hasText("02  一步一步来"))
+                compose.onNodeWithText("02  一步一步来").assertExists()
+                compose.onNodeWithContentDescription("返回").performClick()
+                return@forEach
+            }
             compose.waitUntil(10000) {
                 compose.onAllNodesWithContentDescription("${photo.title}：${photo.caption}", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
             }

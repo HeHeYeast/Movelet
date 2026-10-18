@@ -8,8 +8,8 @@ class TrainingTest {
     private val monday = LocalDate.of(2026, 10, 12)
     private fun one(sets: Int = 2) = Training.start(DayPlan(monday.toString(), "test", true, listOf(PlanItem("dead_bug", sets, 5, "力量训练"))))
     @Test fun catalogHasCompleteUniqueEntries() {
-        assertEquals(24, Catalog.all.size)
-        assertEquals(24, Catalog.all.map { it.id }.distinct().size)
+        assertEquals(32, Catalog.all.size)
+        assertEquals(32, Catalog.all.map { it.id }.distinct().size)
         Catalog.all.forEach {
             assertTrue(it.steps.size >= 2)
             assertTrue(it.name.isNotBlank() && it.english.isNotBlank() && it.setup.isNotBlank() && it.breathing.isNotBlank())
@@ -17,11 +17,11 @@ class TrainingTest {
             assertTrue(it.sources.isNotEmpty() && it.sources.all { s -> s.url.startsWith("https://") })
         }
     }
-    @Test fun weekAlternatesStrengthWithRecoveryAndOnlyReviewedDefaults() {
+    @Test fun weekUsesPosterDayTypesAndOnlyContentCheckedDefaults() {
         val plans = (0L..6L).map { Plans.forDate(monday.plusDays(it)) }
-        assertEquals(listOf(true,false,true,false,true,false,false), plans.map { it.strength })
+        assertEquals(listOf(true,false,true,false,true,true,false), plans.map { it.strength })
         plans.forEach { p ->
-            assertEquals(4, p.items.count { it.section == "肩背活动" })
+            assertEquals(5, p.items.count { it.section == "肩背活动" })
             assertTrue(p.items.filter { it.enabled }.all { Catalog.get(it.exerciseId).reviewed })
             assertTrue(p.items.filter { it.section == "可选有氧" }.all { !it.enabled && it.optional })
         }

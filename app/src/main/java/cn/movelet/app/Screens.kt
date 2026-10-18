@@ -34,7 +34,7 @@ import androidx.core.net.toUri
             (query.isBlank() || "${e.name} ${e.english} ${e.muscles}".contains(query.trim(), ignoreCase = true))
     }
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { TitleBlock("学会动作，再慢慢加量", "动作库", "24 个动作 · 全部配有 AI 分步示意") }
+        item { TitleBlock("学会动作，再慢慢加量", "动作库", "${Catalog.all.size} 个动作 · 24 项图解 · 8 项文字教学") }
         item { OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("搜索动作或肌群") }, leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "清除搜索") } }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(20.dp)) }
         item { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -76,7 +76,7 @@ import androidx.core.net.toUri
             item { SectionTitle("资料来源与素材状态") }
             e.sources.forEach { source -> item { SoftCard {
                 Text(source.title, fontWeight = FontWeight.SemiBold); Text(source.scope, style = MaterialTheme.typography.bodyMedium)
-                Text("查阅：${source.checkedOn}\n文字为中文独立编写，剂量为本 App 保守起点；未经真人专业审核。", style = MaterialTheme.typography.bodySmall)
+                Text("查阅：${source.checkedOn}\n文字为中文独立编写；默认计划剂量按你的参考图设定，可随时调整。未经真人专业审核。", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = {
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, source.url.toUri())) }
                     catch (_: ActivityNotFoundException) { Toast.makeText(context, "未找到可打开资料的浏览器", Toast.LENGTH_LONG).show() }
@@ -130,7 +130,8 @@ import androidx.core.net.toUri
                         Text("第 ${work.completed.size + 1} / ${work.plan.sets} 组", style = MaterialTheme.typography.titleMedium)
                         Text("${work.plan.dose} ${e.unit.label}", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
                         if (e.unit == DoseUnit.EACH_SIDE) Text("左右各做 ${work.plan.dose} 次，再完成这一组", style = MaterialTheme.typography.bodyMedium)
-                        if (e.unit == DoseUnit.SECONDS) Text("时长目标，完成后确认实际秒数", style = MaterialTheme.typography.bodySmall)
+                        if (e.unit == DoseUnit.SECONDS_EACH_SIDE) Text("左右各保持 ${work.plan.dose} 秒，再完成这一组；实际秒数按单侧记录", style = MaterialTheme.typography.bodyMedium)
+                        if (e.unit.isTimed) Text("时长目标，完成后确认实际秒数", style = MaterialTheme.typography.bodySmall)
                     } }
                     item { SoftCard { Text(if (session.rest > 0) "休息一下" else "动作提示", fontWeight = FontWeight.SemiBold)
                         if (session.rest > 0) {
@@ -140,7 +141,7 @@ import androidx.core.net.toUri
                         OutlinedButton(onClick = { vm.pause(); teach(e.id) }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.AutoMirrored.Filled.MenuBook, null); Spacer(Modifier.width(8.dp)); Text("查看完整教学（暂停）") }
                     } }
                     item { TeachingGallery(e, compact = true) }
-                    if (session.rest == 0) item { SoftCard { Counter("实际${e.unit.label}", actual, 1, if (e.unit == DoseUnit.SECONDS) 120 else 30) { actual = it }; Text("少做了也如实记录，不必凑数。", style = MaterialTheme.typography.bodySmall) } }
+                    if (session.rest == 0) item { SoftCard { Counter("实际${e.unit.label}", actual, 1, Plans.maxDose(e)) { actual = it }; Text("少做了也如实记录，不必凑数。", style = MaterialTheme.typography.bodySmall) } }
                 }
                 if (session.paused && work != null) item { Text("已暂停 · 返回教学或切到后台会暂停计时", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium) }
             }

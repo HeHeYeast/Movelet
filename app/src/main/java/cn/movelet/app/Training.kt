@@ -37,26 +37,39 @@ object Plans {
 
     fun forDate(date: LocalDate): DayPlan {
         val day = date.dayOfWeek.value
-        val strength = day in listOf(1, 3, 5)
+        val strength = day in listOf(1, 3, 5, 6)
         val base = listOf(
-            PlanItem("neck", 1, 3, "肩背活动"), PlanItem("twist", 1, 5, "肩背活动"),
-            PlanItem("scapula", 1, 8, "肩背活动"), PlanItem("chest", 3, 15, "肩背活动")
+            PlanItem("chin_tuck", 1, 8, "肩背活动"), PlanItem("cat", 1, 8, "肩背活动"),
+            PlanItem("thread", 1, 5, "肩背活动"), PlanItem("wall_angel", 1, 8, "肩背活动"),
+            PlanItem("doorway", 1, 20, "肩背活动")
         )
         val main = when (day) {
-            1, 5 -> listOf(PlanItem("incline", 2, 6, "力量训练"), PlanItem("squat", 2, 8, "力量训练"),
-                PlanItem("bridge", 2, 10, "力量训练"), PlanItem("dead_bug", 2, 5, "力量训练"))
-            3 -> listOf(PlanItem("incline", 2, 6, "力量训练"), PlanItem("sit_stand", 2, 8, "力量训练"),
-                PlanItem("prone_w", 2, 6, "力量训练"), PlanItem("bird_dog", 2, 5, "力量训练"))
-            6 -> listOf(PlanItem("sit_stand", 1, 6, "轻量活动"), PlanItem("calf", 1, 8, "轻量活动"))
-            else -> listOf(PlanItem("thread", 1, 4, "舒缓活动", true, false))
+            1, 5 -> listOf(PlanItem("pushup", 2, 6, "力量训练"), PlanItem("squat", 2, 12, "力量训练"),
+                PlanItem("bridge", 2, 12, "力量训练"), PlanItem("dead_bug", 2, 8, "力量训练"))
+            2 -> listOf(PlanItem("bird_dog", 2, 8, "轻量活动"), PlanItem("prone_w", 2, 10, "轻量活动"), PlanItem("calf", 2, 15, "轻量活动"))
+            3 -> listOf(PlanItem("reverse_lunge", 2, 8, "力量训练"), PlanItem("prone_w", 2, 10, "力量训练"),
+                PlanItem("plank", 2, 20, "力量训练"), PlanItem("bird_dog", 2, 8, "力量训练"))
+            4 -> listOf(PlanItem("squat", 2, 12, "轻量活动"), PlanItem("bridge", 2, 12, "轻量活动"),
+                PlanItem("prone_w", 2, 10, "轻量活动"), PlanItem("calf", 2, 15, "轻量活动"))
+            6 -> listOf(PlanItem("reverse_lunge", 2, 8, "轻量活动"), PlanItem("bird_dog", 2, 8, "轻量活动"),
+                PlanItem("plank", 2, 20, "轻量活动"), PlanItem("prone_w", 2, 10, "轻量活动"))
+            else -> listOf(PlanItem("bird_dog", 1, 6, "轻量活动"), PlanItem("squat", 1, 10, "轻量活动"))
         }
-        return DayPlan(date.toString(), when(day) { 1,5 -> "全身力量 A"; 3 -> "全身力量 B"; 6 -> "轻活动日"; else -> "恢复与舒展" },
-            strength, base + main + PlanItem("march", 2, 30, "可选有氧", true, false))
+        val cardio = if (day == 3) PlanItem("floor_burpee", 2, 5, "可选有氧", true, false)
+            else PlanItem("jumping_jack", if (day >= 6) 1 else 2, 30, "可选有氧", true, false)
+        val cooldown = when(day) {
+            2 -> listOf(PlanItem("walk", 1, 120, "放松走动"))
+            7 -> listOf(PlanItem("walk", 1, 180, "放松走动"))
+            else -> emptyList()
+        }
+        return DayPlan(date.toString(), when(day) { 1,5 -> "力量 A"; 3 -> "力量 B"; 6 -> "力量 B（轻量版）"; 7 -> "恢复日"; else -> "轻量日" },
+            strength, base + main + cardio + cooldown)
     }
     fun safe(item: PlanItem): PlanItem {
         val e = Catalog.get(item.exerciseId)
-        return item.copy(sets = item.sets.coerceIn(1, 5), dose = item.dose.coerceIn(1, if (e.unit == DoseUnit.SECONDS) 120 else 30))
+        return item.copy(sets = item.sets.coerceIn(1, 5), dose = item.dose.coerceIn(1, maxDose(e)))
     }
+    fun maxDose(e: Exercise): Int = if (e.id == "walk") 300 else if (e.unit.isTimed) 120 else 30
     fun substitute(item: PlanItem, id: String): PlanItem {
         val e = Catalog.get(id)
         require(e.reviewed)
@@ -73,8 +86,9 @@ object Training {
         if (s.paused || s.rest > 0 || s.endedAt != null || s.currentIndex < 0) return s
         val index = s.currentIndex
         val item = s.items[index]
-        val unit = Catalog.get(item.plan.exerciseId).unit
-        val dose = actualDose.coerceIn(1, if (unit == DoseUnit.SECONDS) 120 else 30)
+        val exercise = Catalog.get(item.plan.exerciseId)
+        val unit = exercise.unit
+        val dose = actualDose.coerceIn(1, Plans.maxDose(exercise))
         val items = s.items.mapIndexed { i, w -> if (i == index) w.copy(completed = w.completed + SetResult(dose, unit)) else w }
         val next = s.copy(items = items)
         return next.copy(rest = if (next.currentIndex < 0) 0 else if (item.plan.section == "力量训练") 60 else 20)

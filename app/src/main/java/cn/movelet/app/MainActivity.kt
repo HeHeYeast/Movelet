@@ -130,7 +130,7 @@ private val Pine = Color(0xFF276553)
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("每组留 2–4 次余力，恢复日可以短一点。你的肩背疼痛尚未评估，本计划不用于诊断或治疗。")
             Text("关节痛、刺痛或症状加重：停止该动作，选择无痛替代，必要时结束训练。持续疼痛、明显无力麻木或活动受限，应寻求专业评估；突发剧痛或外伤后无法活动时及时就医。")
-            Text("24 个动作均有 AI 分步示意，未获真人专业签核。请先读动作说明，不必达到图示幅度；候选动作仍待进一步复核，不因有图而加入默认计划。" + if (BuildConfig.PERSONAL_MEDIA) "21 项另有离线原图，可切换对照。" else "动作资料可从详情页打开。")
+            Text("动作库共 ${Catalog.all.size} 项；24 项有 AI 分步示意，新增 8 项暂用文字教学与资料链接。内容未获真人专业签核，图示不作为幅度目标；原候选动作仍待复核。" + if (BuildConfig.PERSONAL_MEDIA) "21 项另有离线原图，可切换对照。" else "动作资料可从详情页打开。")
         }
     }, confirmButton = { TextButton(onClick = { prefs.edit { putBoolean("safety_seen", true) }; safety = false }) { Text("了解，按身体状态调整") } })
     if (error != null) AlertDialog(onDismissRequest = { vm.error.value = null }, title = { Text("本地保存提示") }, text = { Text(error!!) }, confirmButton = { TextButton(onClick = { vm.error.value = null }) { Text("知道了") } })
@@ -209,6 +209,7 @@ private val Pine = Color(0xFF276553)
                             Text("${plan.items.filter { it.enabled }.sumOf { it.sets }} 组 · 可调整")
                         }
                         Text("${if (customDate) "当天自定义" else "按每周安排"} · 每组保留余力", style = MaterialTheme.typography.bodyMedium)
+                        if (plan == Plans.forDate(date)) Text("按参考图编排 · 次数范围先用下限 · 有氧按需开启", style = MaterialTheme.typography.bodySmall)
                         if (latest != null) {
                             LinearProgressIndicator(progress = { (latest.doneSets.toFloat() / latest.targetSets.coerceAtLeast(1)).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
                             Text("最近一场：${latest.status} · ${latest.doneSets}/${latest.targetSets} 组", style = MaterialTheme.typography.labelLarge)
@@ -292,7 +293,7 @@ private val Pine = Color(0xFF276553)
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(e.name, fontWeight = FontWeight.Bold)
             Counter("组数", item.sets, 1, 5) { item = item.copy(sets = it) }
-            Counter("每组${e.unit.label}", item.dose, 1, if (e.unit == DoseUnit.SECONDS) 120 else 30) { item = item.copy(dose = it) }
+            Counter("每组${e.unit.label}", item.dose, 1, Plans.maxDose(e)) { item = item.copy(dose = it) }
             Text("替换为同类动作", style = MaterialTheme.typography.labelLarge)
             Catalog.all.filter { it.category == e.category && it.reviewed && it.id !in used }.forEach { alt ->
                 TextButton(onClick = { item = Plans.substitute(item, alt.id) }, modifier = Modifier.fillMaxWidth()) {

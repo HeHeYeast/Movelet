@@ -21,7 +21,7 @@ import com.google.gson.Gson
 import java.time.LocalDate
 
 val WeekdayNames = listOf("周一", "周二", "周三", "周四", "周五", "周六", "周日")
-val PlanSections = listOf("肩背活动", "力量训练", "轻量活动", "舒缓活动", "可选有氧")
+val PlanSections = listOf("肩背活动", "力量训练", "轻量活动", "舒缓活动", "可选有氧", "放松走动")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun WeeklyPlanScreen(templates: Map<Int, WeekTemplate>, back: () -> Unit, edit: (Int) -> Unit) {
@@ -150,6 +150,7 @@ val PlanSections = listOf("肩背活动", "力量训练", "轻量活动", "舒�
             "肩背活动", "舒缓活动" -> e.category == Category.MOBILITY
             "力量训练" -> e.category in listOf(Category.UPPER, Category.LOWER, Category.CORE)
             "可选有氧" -> e.category == Category.CARDIO
+            "放松走动" -> e.id == "walk" || e.id == "march"
             else -> true
         }) && (e.name.contains(query.trim(), true) || e.muscles.contains(query.trim(), true)) }
     AlertDialog(onDismissRequest = dismiss, title = { Text("添加动作") }, text = {
