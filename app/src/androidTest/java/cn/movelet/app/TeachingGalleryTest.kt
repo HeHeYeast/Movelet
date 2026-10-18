@@ -30,7 +30,7 @@ class TeachingGalleryTest {
                 compose.onAllNodesWithContentDescription("${photo.title}：${photo.caption}", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
             }
             compose.onNodeWithText("AI 动作示意").assertExists()
-            if (exercise.id == "burpee") {
+            if (exercise.id in listOf("burpee", "floor_burpee", "reverse_lunge")) {
                 compose.onNodeWithTag("teaching-detail").performScrollToNode(hasText(photo.phaseGuide!!, substring = true))
                 compose.onNodeWithText(photo.phaseGuide!!, substring = true).assertExists()
             }

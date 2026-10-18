@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.movelet.app.PosterPlanTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-18T15:13:14" hostname="HEHEYEAST" time="0.058">
+  <properties/>
+  <testcase name="sevenDayDefaultsFollowTheRequestedPoster" classname="cn.movelet.app.PosterPlanTest" time="0.042"/>
+  <testcase name="posterExercisesHaveTheirOwnTeachingAndPreserveTimedTargets" classname="cn.movelet.app.PosterPlanTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -130,7 +130,7 @@ private val Pine = Color(0xFF276553)
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("每组留 2–4 次余力，恢复日可以短一点。你的肩背疼痛尚未评估，本计划不用于诊断或治疗。")
             Text("关节痛、刺痛或症状加重：停止该动作，选择无痛替代，必要时结束训练。持续疼痛、明显无力麻木或活动受限，应寻求专业评估；突发剧痛或外伤后无法活动时及时就医。")
-            Text("动作库共 ${Catalog.all.size} 项；24 项有 AI 分步示意，新增 8 项暂用文字教学与资料链接。内容未获真人专业签核，图示不作为幅度目标；原候选动作仍待复核。" + if (BuildConfig.PERSONAL_MEDIA) "21 项另有离线原图，可切换对照。" else "动作资料可从详情页打开。")
+            Text("动作库共 ${Catalog.all.size} 项，均配有 AI 分步示意、文字步骤与资料链接。内容未获真人专业签核，图示不作为幅度目标；原候选动作仍待复核。" + if (BuildConfig.PERSONAL_MEDIA) "21 项另有离线原图，可切换对照。" else "动作资料可从详情页打开。")
         }
     }, confirmButton = { TextButton(onClick = { prefs.edit { putBoolean("safety_seen", true) }; safety = false }) { Text("了解，按身体状态调整") } })
     if (error != null) AlertDialog(onDismissRequest = { vm.error.value = null }, title = { Text("本地保存提示") }, text = { Text(error!!) }, confirmButton = { TextButton(onClick = { vm.error.value = null }) { Text("知道了") } })
